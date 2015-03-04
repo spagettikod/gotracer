@@ -92,30 +92,6 @@ var (
 		{data: []byte{0x01, 0x04, 0x33, 0x02, 0x00, 0x12, 0xde, 0x83}, respLen: 41, offset: 79}}
 )
 
-func readWithTimeout(r io.Reader, n int) ([]byte, error) {
-	buf := make([]byte, 120)
-	done := make(chan error)
-	readAndCallBack := func() {
-		_, err := io.ReadAtLeast(r, buf, n)
-		done <- err
-	}
-
-	go readAndCallBack()
-
-	timeout := make(chan bool)
-	sleepAndCallBack := func() { time.Sleep(2e9); timeout <- true }
-	go sleepAndCallBack()
-
-	select {
-	case err := <-done:
-		return buf, err
-	case <-timeout:
-		return nil, errors.New("Timed out.")
-	}
-
-	return nil, errors.New("Can't get here.")
-}
-
 // Read status information from the Tracer connected on specified portName.
 func Status(portName string) (t TracerStatus, err error) {
 	options := serial.OpenOptions{
@@ -175,6 +151,30 @@ func Status(portName string) (t TracerStatus, err error) {
 	t.EnergyGeneratedTotal = unpack(buffer[112:116]) / 100
 
 	return
+}
+
+func readWithTimeout(r io.Reader, n int) ([]byte, error) {
+	buf := make([]byte, 120)
+	done := make(chan error)
+	readAndCallBack := func() {
+		_, err := io.ReadAtLeast(r, buf, n)
+		done <- err
+	}
+
+	go readAndCallBack()
+
+	timeout := make(chan bool)
+	sleepAndCallBack := func() { time.Sleep(2e9); timeout <- true }
+	go sleepAndCallBack()
+
+	select {
+	case err := <-done:
+		return buf, err
+	case <-timeout:
+		return nil, errors.New("Timed out.")
+	}
+
+	return nil, errors.New("Can't get here.")
 }
 
 // Converts a slice of bytes to a float. Byte values are shifted according
