@@ -28,3 +28,12 @@ func main() {
 	fmt.Println(status)
 }
 ```
+
+## Roadmap
+* Add missing status information: PV Working State, Charging State, Battery State and Controller Working State
+* Turn load on and off
+* Read device information: model, software version and serial number
+* Read device parameters
+* Set device parameters
+* Read device time
+* Set device time
