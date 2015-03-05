@@ -49,28 +49,29 @@ import (
 
 // Status information read from Tracer
 type TracerStatus struct {
-	ArrayVoltage           float32 `json:"pvv"`     // Solar panel voltage, (V)
-	ArrayCurrent           float32 `json:"pvc"`     // Solar panel current, (A)
-	ArrayPower             float32 `json:"pvp"`     // Solar panel power, (W)
-	BatteryVoltage         float32 `json:"bv"`      // Battery voltage, (V)
-	BatteryCurrent         float32 `json:"bc"`      // Battery current, (A)
-	BatterySOC             int32   `json:"bsoc"`    // Battery state of charge, (%)
-	BatteryTemp            float32 `json:"btemp"`   // Battery temperatur, (C)
-	BatteryMaxVoltage      float32 `json:"bmaxv"`   // Battery maximum voltage, (V)
-	BatteryMinVoltage      float32 `json:"bminv"`   // Battery lowest voltage, (V)
-	DeviceTemp             float32 `json:"devtemp"` // Tracer temperature, (C)
-	LoadVoltage            float32 `json:"lv"`      // Load voltage, (V)
-	LoadCurrent            float32 `json:"lc"`      // Load current, (A)
-	LoadPower              float32 `json:"lp"`      // Load power, (W)
-	Load                   bool    `json:"load"`    // Shows whether load is on or off
-	EnergyConsumedDaily    float32 `json:"ecd"`     // Tracer calculated daily consumption, (kWh)
-	EnergyConsumedMonthly  float32 `json:"ecm"`     // Tracer calculated monthly consumption, (kWh)
-	EnergyConsumedAnnual   float32 `json:"eca"`     // Tracer calculated annual consumption, (kWh)
-	EnergyConsumedTotal    float32 `json:"ect"`     // Tracer calculated total consumption, (kWh)
-	EnergyGeneratedDaily   float32 `json:"egd"`     // Tracer calculated daily power generation, (kWh)
-	EnergyGeneratedMonthly float32 `json:"egm"`     // Tracer calculated monthly power generation, (kWh)
-	EnergyGeneratedAnnual  float32 `json:"ega"`     // Tracer calculated annual power generation, (kWh)
-	EnergyGeneratedTotal   float32 `json:"egt"`     // Tracer calculated total power generation, (kWh)
+	ArrayVoltage           float32   `json:"pvv"`     // Solar panel voltage, (V)
+	ArrayCurrent           float32   `json:"pvc"`     // Solar panel current, (A)
+	ArrayPower             float32   `json:"pvp"`     // Solar panel power, (W)
+	BatteryVoltage         float32   `json:"bv"`      // Battery voltage, (V)
+	BatteryCurrent         float32   `json:"bc"`      // Battery current, (A)
+	BatterySOC             int32     `json:"bsoc"`    // Battery state of charge, (%)
+	BatteryTemp            float32   `json:"btemp"`   // Battery temperatur, (C)
+	BatteryMaxVoltage      float32   `json:"bmaxv"`   // Battery maximum voltage, (V)
+	BatteryMinVoltage      float32   `json:"bminv"`   // Battery lowest voltage, (V)
+	DeviceTemp             float32   `json:"devtemp"` // Tracer temperature, (C)
+	LoadVoltage            float32   `json:"lv"`      // Load voltage, (V)
+	LoadCurrent            float32   `json:"lc"`      // Load current, (A)
+	LoadPower              float32   `json:"lp"`      // Load power, (W)
+	Load                   bool      `json:"load"`    // Shows whether load is on or off
+	EnergyConsumedDaily    float32   `json:"ecd"`     // Tracer calculated daily consumption, (kWh)
+	EnergyConsumedMonthly  float32   `json:"ecm"`     // Tracer calculated monthly consumption, (kWh)
+	EnergyConsumedAnnual   float32   `json:"eca"`     // Tracer calculated annual consumption, (kWh)
+	EnergyConsumedTotal    float32   `json:"ect"`     // Tracer calculated total consumption, (kWh)
+	EnergyGeneratedDaily   float32   `json:"egd"`     // Tracer calculated daily power generation, (kWh)
+	EnergyGeneratedMonthly float32   `json:"egm"`     // Tracer calculated monthly power generation, (kWh)
+	EnergyGeneratedAnnual  float32   `json:"ega"`     // Tracer calculated annual power generation, (kWh)
+	EnergyGeneratedTotal   float32   `json:"egt"`     // Tracer calculated total power generation, (kWh)
+	Timestamp              time.Time `json:"t"`
 }
 
 // Formatted output showing all status parameters
@@ -120,6 +121,8 @@ func Status(portName string) (t TracerStatus, err error) {
 		}
 		copy(buffer[r.offset:], b)
 	}
+
+	t.Timestamp = time.Now().UTC()
 
 	t.Load = int(buffer[8]) == 1
 	t.ArrayVoltage = unpack(buffer[24:26]) / 100
