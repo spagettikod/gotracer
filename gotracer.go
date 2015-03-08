@@ -39,12 +39,10 @@
 package gotracer
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"time"
 
-	"github.com/jacobsa/go-serial/serial"
+	"github.com/tarm/serial"
 )
 
 // Status information read from Tracer
@@ -95,16 +93,10 @@ var (
 
 // Read status information from the Tracer connected on specified portName.
 func Status(portName string) (t TracerStatus, err error) {
-	options := serial.OpenOptions{
-		PortName:        portName,
-		BaudRate:        115200,
-		DataBits:        8,
-		StopBits:        1,
-		MinimumReadSize: 4,
-	}
+	c := &serial.Config{Name: portName, Baud: 115200, ReadTimeout: time.Second * 3}
 
-	var port io.ReadWriteCloser
-	port, err = serial.Open(options)
+	var port *serial.Port
+	port, err = serial.OpenPort(c)
 	if err != nil {
 		return
 	}
@@ -115,10 +107,12 @@ func Status(portName string) (t TracerStatus, err error) {
 		if _, err = port.Write(r.data); err != nil {
 			return
 		}
-		var b []byte
-		if b, err = readWithTimeout(port, r.respLen); err != nil {
+
+		b := make([]byte, r.respLen)
+		if _, err = port.Read(b); err != nil {
 			return
 		}
+
 		copy(buffer[r.offset:], b)
 	}
 
@@ -154,30 +148,6 @@ func Status(portName string) (t TracerStatus, err error) {
 	t.EnergyGeneratedTotal = unpack(buffer[112:116]) / 100
 
 	return
-}
-
-func readWithTimeout(r io.Reader, n int) ([]byte, error) {
-	buf := make([]byte, 120)
-	done := make(chan error)
-	readAndCallBack := func() {
-		_, err := io.ReadAtLeast(r, buf, n)
-		done <- err
-	}
-
-	go readAndCallBack()
-
-	timeout := make(chan bool)
-	sleepAndCallBack := func() { time.Sleep(2e9); timeout <- true }
-	go sleepAndCallBack()
-
-	select {
-	case err := <-done:
-		return buf, err
-	case <-timeout:
-		return nil, errors.New("Timed out.")
-	}
-
-	return nil, errors.New("Can't get here.")
 }
 
 // Converts a slice of bytes to a float. Byte values are shifted according
