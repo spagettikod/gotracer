@@ -126,9 +126,20 @@ func Status(portName string) (t TracerStatus, err error) {
 	t.LoadVoltage = unpack(buffer[40:42]) / 100
 	t.LoadCurrent = unpack(buffer[42:44]) / 100
 	t.LoadPower = unpack(buffer[44:46]) / 100
-	t.BatteryTemp = unpack(buffer[56:58]) / 100
-	t.DeviceTemp = unpack(buffer[58:60]) / 100
-	t.BatterySOC = int32(buffer[65])
+
+	// Battery temperature can be negative.
+	bt := unpack(buffer[56:58])
+	if bt > 32768 {
+		bt = bt - 65536
+	}
+	t.BatteryTemp = bt / 100
+
+	// Device temperature can be negative.
+	dt := unpack(buffer[58:60])
+	if dt > 32768 {
+		dt = dt - 65536
+	}
+	t.DeviceTemp = dt / 100
 
 	// Battery current can be negative.
 	bc := unpack(buffer[73:75])
@@ -136,6 +147,8 @@ func Status(portName string) (t TracerStatus, err error) {
 		bc = bc - 65536
 	}
 	t.BatteryCurrent = bc / 100
+
+	t.BatterySOC = int32(buffer[65])
 	t.BatteryMaxVoltage = unpack(buffer[82:84]) / 100
 	t.BatteryMinVoltage = unpack(buffer[84:86]) / 100
 	t.EnergyConsumedDaily = unpack(buffer[86:88]) / 100
