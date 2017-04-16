@@ -45,7 +45,7 @@ import (
 	"github.com/tarm/serial"
 )
 
-// Status information read from Tracer
+// TracerStatus contain status information read from Tracer
 type TracerStatus struct {
 	ArrayVoltage           float32   `json:"pvv"`     // Solar panel voltage, (V)
 	ArrayCurrent           float32   `json:"pvc"`     // Solar panel current, (A)
@@ -84,25 +84,24 @@ type command struct {
 }
 
 var (
-	queryStateCommand []command = []command{{data: []byte{0x01, 0x04, 0x32, 0x00, 0x00, 0x03, 0xbe, 0xb3}, respLen: 11, offset: 0},
+	queryStateCommand = []command{{data: []byte{0x01, 0x04, 0x32, 0x00, 0x00, 0x03, 0xbe, 0xb3}, respLen: 11, offset: 0},
 		{data: []byte{0x01, 0x02, 0x20, 0x00, 0x00, 0x01, 0xb2, 0x0a}, respLen: 6, offset: 11},
 		{data: []byte{0x01, 0x43, 0x31, 0x00, 0x00, 0x1b, 0x0a, 0xf2}, respLen: 51, offset: 17},
 		{data: []byte{0x01, 0x04, 0x33, 0x1a, 0x00, 0x03, 0x9e, 0x88}, respLen: 11, offset: 68},
 		{data: []byte{0x01, 0x04, 0x33, 0x02, 0x00, 0x12, 0xde, 0x83}, respLen: 41, offset: 79}}
 )
 
-// Read status information from the Tracer connected on specified portName.
+// Status reads information from the Tracer connected on specified portName.
 func Status(portName string) (t TracerStatus, err error) {
 	c := &serial.Config{Name: portName, Baud: 115200, ReadTimeout: time.Second * 3}
 
-	var port *serial.Port
-	port, err = serial.OpenPort(c)
+	port, err := serial.OpenPort(c)
 	if err != nil {
 		return
 	}
 	defer port.Close()
 
-	var buffer []byte = make([]byte, 120)
+	buffer := make([]byte, 120)
 	for _, r := range queryStateCommand {
 		if _, err = port.Write(r.data); err != nil {
 			return
