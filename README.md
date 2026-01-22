@@ -1,3 +1,5 @@
+## THIS PROJECT HAS BEEN MIGRATED TO https://codeberg.org/spagettikod/gotracer
+
 # gotracer
 Go package to communicate with the EPsolar Tracer*BN series solar charge controllers.
 
